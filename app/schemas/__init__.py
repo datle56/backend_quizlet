@@ -9,6 +9,12 @@ from .social import (
     FavoriteBase, FavoriteCreate, FavoriteResponse, RatingBase, RatingCreate, RatingUpdate,
     RatingResponse, StudySetWithFavorite, StudySetWithRating, RatingSummary
 )
+from .class_ import (
+    ClassBase, ClassCreate, ClassUpdate, ClassResponse, ClassDetailResponse,
+    ClassJoin, ClassMemberBase, ClassMemberCreate, ClassMemberResponse,
+    ClassStudySetBase, ClassStudySetCreate, ClassStudySetUpdate, ClassStudySetResponse,
+    ClassProgressResponse
+)
 
 __all__ = [
     "UserBase", "UserCreate", "UserUpdate", "UserResponse", "UserLogin", "Token", "TokenData",
@@ -16,5 +22,9 @@ __all__ = [
     "StudySetListItem", "StudySetListResponse", "StudySetSearchParams",
     "TermBase", "TermCreate", "TermUpdate", "TermResponse", "TermBulkCreate", "TermReorder",
     "FavoriteBase", "FavoriteCreate", "FavoriteResponse", "RatingBase", "RatingCreate", "RatingUpdate",
-    "RatingResponse", "StudySetWithFavorite", "StudySetWithRating", "RatingSummary"
+    "RatingResponse", "StudySetWithFavorite", "StudySetWithRating", "RatingSummary",
+    "ClassBase", "ClassCreate", "ClassUpdate", "ClassResponse", "ClassDetailResponse",
+    "ClassJoin", "ClassMemberBase", "ClassMemberCreate", "ClassMemberResponse",
+    "ClassStudySetBase", "ClassStudySetCreate", "ClassStudySetUpdate", "ClassStudySetResponse",
+    "ClassProgressResponse"
 ] 
