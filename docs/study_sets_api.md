@@ -590,3 +590,4 @@ Reorders terms by updating their positions.
 - `user_id`: User who made the change
 - `changes_summary`: Summary of changes
 - `created_at`: When version was created 
+
