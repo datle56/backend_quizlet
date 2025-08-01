@@ -5,10 +5,16 @@ from .study_set import (
     StudySetListItem, StudySetListResponse, StudySetSearchParams,
     TermBase, TermCreate, TermUpdate, TermResponse, TermBulkCreate, TermReorder
 )
+from .social import (
+    FavoriteBase, FavoriteCreate, FavoriteResponse, RatingBase, RatingCreate, RatingUpdate,
+    RatingResponse, StudySetWithFavorite, StudySetWithRating, RatingSummary
+)
 
 __all__ = [
     "UserBase", "UserCreate", "UserUpdate", "UserResponse", "UserLogin", "Token", "TokenData",
     "StudySetBase", "StudySetCreate", "StudySetUpdate", "StudySetResponse", "StudySetDetailResponse",
     "StudySetListItem", "StudySetListResponse", "StudySetSearchParams",
-    "TermBase", "TermCreate", "TermUpdate", "TermResponse", "TermBulkCreate", "TermReorder"
+    "TermBase", "TermCreate", "TermUpdate", "TermResponse", "TermBulkCreate", "TermReorder",
+    "FavoriteBase", "FavoriteCreate", "FavoriteResponse", "RatingBase", "RatingCreate", "RatingUpdate",
+    "RatingResponse", "StudySetWithFavorite", "StudySetWithRating", "RatingSummary"
 ] 
