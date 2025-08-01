@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.api.deps import get_current_active_user
 from app.models.user import User
-from app.schemas.user import UserResponse, UserUpdate
+from app.schemas.user import UserResponse, UserUpdate, UserStatistics
 from app.core.security import get_password_hash
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -69,4 +69,34 @@ def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
         )
     data = _to_user_dict(user)
     resp = UserResponse.model_validate(data)
-    return resp 
+    return resp
+
+
+@router.get("/me/statistics", response_model=UserStatistics)
+def get_user_statistics(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Get current user statistics"""
+    from app.models.folder import Folder
+    
+    # Get total folders
+    total_folders = db.query(Folder).filter(Folder.user_id == current_user.id).count()
+    
+    # Get study streak (simplified - can be enhanced later)
+    study_streak_days = 0  # TODO: Implement proper streak calculation
+    last_study_date = None  # TODO: Get from study_sessions table
+    
+    # Get recent activities (simplified)
+    recent_activities = []  # TODO: Implement from study_sessions, study_progress, etc.
+    
+    statistics = UserStatistics(
+        total_study_sets_created=current_user.total_study_sets_created,
+        total_terms_learned=current_user.total_terms_learned,
+        total_folders=total_folders,
+        study_streak_days=study_streak_days,
+        last_study_date=last_study_date,
+        recent_activities=recent_activities
+    )
+    
+    return statistics 

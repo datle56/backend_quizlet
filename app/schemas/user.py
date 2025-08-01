@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
 
@@ -31,6 +31,15 @@ class UserResponse(UserBase):
     total_study_sets_created: int
     total_terms_learned: int
     model_config = {"from_attributes": True}
+
+
+class UserStatistics(BaseModel):
+    total_study_sets_created: int
+    total_terms_learned: int
+    total_folders: int
+    study_streak_days: int
+    last_study_date: Optional[datetime] = None
+    recent_activities: List[dict] = []
 
 
 class UserLogin(BaseModel):

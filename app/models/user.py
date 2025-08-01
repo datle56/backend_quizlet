@@ -21,4 +21,5 @@ class User(Base):
     total_terms_learned = Column(Integer, default=0)
 
     # Relationships
-    study_sets = relationship("StudySet", back_populates="user") 
+    study_sets = relationship("StudySet", back_populates="user")
+    folders = relationship("Folder", back_populates="user") 
