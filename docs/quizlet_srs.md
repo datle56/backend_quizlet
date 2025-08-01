@@ -18,7 +18,7 @@
     "correct_count": 3,
     "incorrect_count": 1,
     "last_studied": "2024-06-01T10:00:00Z",
-    "next_review": "2024-06-02T10:00:00Z",
+    "next_review": "2024-06-01T10:01:00Z",
     "current_streak": 2,
     "longest_streak": 2
   }
@@ -60,7 +60,7 @@
       "term": "Hello",
       "definition": "Xin chào",
       "familiarity_level": "learning",
-      "next_review": "2024-06-02T10:00:00Z"
+      "next_review": "2024-06-01T10:01:00Z"
     }
   ]
 }
@@ -71,7 +71,7 @@
 ### 4. Start Study Session
 **POST** `/api/v1/study/session`
 - Bắt đầu một phiên học (flashcards, learn, test...)
-- Lưu lại mode, thời gian bắt đầu, mục tiêu...
+- Lưu lại mode, thời gian bắt đầu để thống kê
 
 **Request:**
 ```json
@@ -111,9 +111,33 @@
 
 ---
 
+## Cách Test SRS (Spaced Repetition System)
+
+### Test Flow:
+1. **Tạo study set** với một số terms
+2. **Học term lần đầu** (POST `/progress/{study_set_id}/terms/{term_id}` với `correct: true`)
+   - Term sẽ có `familiarity_level: "learning"` và `next_review: now + 1 phút`
+3. **Đợi 1 phút** hoặc set `next_review` về quá khứ để test
+4. **Gọi GET `/review/{study_set_id}`** - term sẽ xuất hiện trong danh sách review
+5. **Học lại term** (POST với `correct: true`)
+   - Term sẽ lên `familiarity_level: "familiar"` và `next_review: now + 3 phút`
+6. **Lặp lại** để test các level khác nhau
+
+### SRS Intervals (để test nhanh):
+- **Learning**: 1 phút
+- **Familiar**: 3 phút  
+- **Mastered**: 7 phút
+
+### Study Session Flow:
+1. **Bắt đầu học**: `POST /session` với `study_set_id` và `study_mode`
+2. **Học các terms**: Sử dụng `POST /progress/{study_set_id}/terms/{term_id}` 
+3. **Kết thúc**: `PUT /session/{id}` với kết quả cuối cùng
+
+---
+
 ## Backend SRS (Spaced Repetition System) - BE xử lý sao?
 - Mỗi lần user học/ôn 1 term, BE cập nhật familiarity_level (learning → familiar → mastered) dựa trên đúng/sai.
-- Sử dụng SRS: mỗi familiarity_level có khoảng thời gian ôn lại khác nhau (learning: 1 ngày, familiar: 3 ngày, mastered: 7 ngày).
+- Sử dụng SRS: mỗi familiarity_level có khoảng thời gian ôn lại khác nhau (learning: 1 phút, familiar: 3 phút, mastered: 7 phút).
 - Nếu trả lời sai, giảm level và reset streak.
 - BE tự động tính toán next_review cho từng term dựa trên kết quả học.
 - Khi gọi API review, BE trả về các term đến hạn hoặc cần ưu tiên ôn tập.

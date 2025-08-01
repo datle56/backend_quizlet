@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+"""
+Script to create quizletDB database and all required tables, including study mode functionality.
+"""
 
 import psycopg2
 import time
@@ -10,6 +14,7 @@ DB_PASS = 'mypassword'
 DB_NAME = 'quizletDB'
 
 def execute_query(conn, query, autocommit=False):
+    """Execute a database query"""
     with conn.cursor() as cur:
         cur.execute(query)
     if autocommit:
@@ -56,6 +61,13 @@ conn.autocommit = True
 
 # Truy vấn tạo bảng
 create_tables_sql = """
+-- Tạo các enum trước khi sử dụng
+CREATE TYPE familiarity_level_enum AS ENUM('learning', 'familiar', 'mastered');
+CREATE TYPE study_mode_enum AS ENUM('flashcards', 'learn', 'write', 'spell', 'test', 'match', 'gravity');
+
+-- Cập nhật study_mode_enum để đảm bảo có 'gravity'
+ALTER TYPE study_mode_enum ADD VALUE IF NOT EXISTS 'gravity';
+
 -- Bảng users
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
@@ -120,8 +132,6 @@ CREATE TABLE folder_study_sets (
 );
 
 -- study_progress
-CREATE TYPE familiarity_level_enum AS ENUM('learning', 'familiar', 'mastered');
-
 CREATE TABLE study_progress (
     id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(id),
@@ -137,8 +147,6 @@ CREATE TABLE study_progress (
 );
 
 -- study_sessions
-CREATE TYPE study_mode_enum AS ENUM('flashcards', 'learn', 'write', 'spell', 'test', 'match');
-
 CREATE TABLE study_sessions (
     id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(id),
@@ -150,6 +158,118 @@ CREATE TABLE study_sessions (
     total_questions INT,
     correct_answers INT,
     time_spent_seconds INT
+);
+
+-- starred_cards (for flashcards mode)
+CREATE TABLE starred_cards (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id),
+    study_set_id INT REFERENCES study_sets(id),
+    term_id INT REFERENCES terms(id),
+    starred_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, study_set_id, term_id)
+);
+
+-- test_sessions (for test mode)
+CREATE TABLE test_sessions (
+    id SERIAL PRIMARY KEY,
+    study_session_id INT REFERENCES study_sessions(id),
+    max_questions INT,
+    answer_with VARCHAR(20) CHECK (answer_with IN ('term', 'definition', 'both')),
+    question_types TEXT[],
+    time_limit INT,
+    randomized_order BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- test_questions (individual questions in a test)
+CREATE TABLE test_questions (
+    id SERIAL PRIMARY KEY,
+    test_session_id INT REFERENCES test_sessions(id),
+    term_id INT REFERENCES terms(id),
+    question_type VARCHAR(20),
+    question_text TEXT,
+    correct_answer TEXT,
+    options TEXT[],
+    user_answer TEXT,
+    is_correct BOOLEAN,
+    points_earned DECIMAL(3,2),
+    time_spent_seconds INT,
+    position INT
+);
+
+-- match_games (for match mode)
+CREATE TABLE match_games (
+    id SERIAL PRIMARY KEY,
+    study_session_id INT REFERENCES study_sessions(id),
+    pairs_count INT,
+    selected_terms TEXT[],
+    completed_at TIMESTAMP,
+    completion_time_seconds INT,
+    incorrect_matches INT DEFAULT 0,
+    total_matches INT
+);
+
+-- match_moves (tracking moves in match game)
+CREATE TABLE match_moves (
+    id SERIAL PRIMARY KEY,
+    match_game_id INT REFERENCES match_games(id),
+    move_number INT,
+    first_card_term_id INT REFERENCES terms(id),
+    second_card_term_id INT REFERENCES terms(id),
+    is_match BOOLEAN,
+    time_spent_seconds INT,
+    move_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- gravity_games (for gravity mode)
+CREATE TABLE gravity_games (
+    id SERIAL PRIMARY KEY,
+    study_session_id INT REFERENCES study_sessions(id),
+    difficulty_level INT DEFAULT 1,
+    speed_multiplier DECIMAL(3,2) DEFAULT 1.0,
+    lives_remaining INT DEFAULT 3,
+    score INT DEFAULT 0,
+    terms_destroyed INT DEFAULT 0,
+    game_duration_seconds INT,
+    completed_at TIMESTAMP
+);
+
+-- gravity_terms (terms that appeared in gravity game)
+CREATE TABLE gravity_terms (
+    id SERIAL PRIMARY KEY,
+    gravity_game_id INT REFERENCES gravity_games(id),
+    term_id INT REFERENCES terms(id),
+    appeared_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    was_destroyed BOOLEAN DEFAULT FALSE,
+    time_to_destroy_seconds INT,
+    user_answer TEXT
+);
+
+-- learn_sessions (for learn mode)
+CREATE TABLE learn_sessions (
+    id SERIAL PRIMARY KEY,
+    study_session_id INT REFERENCES study_sessions(id),
+    current_difficulty INT DEFAULT 1,
+    questions_answered INT DEFAULT 0,
+    correct_answers INT DEFAULT 0,
+    current_streak INT DEFAULT 0,
+    adaptive_algorithm_data JSONB,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- learn_questions (questions in learn mode)
+CREATE TABLE learn_questions (
+    id SERIAL PRIMARY KEY,
+    learn_session_id INT REFERENCES learn_sessions(id),
+    term_id INT REFERENCES terms(id),
+    question_type VARCHAR(20),
+    difficulty_level INT,
+    user_answer TEXT,
+    is_correct BOOLEAN,
+    response_time_seconds DECIMAL(5,2),
+    points_earned INT,
+    asked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- favorites
@@ -244,7 +364,7 @@ CREATE TABLE study_set_versions (
 
 try:
     execute_query(conn, create_tables_sql, autocommit=True)
-    print("✅ Tạo tất cả bảng thành công trong database quizletDB.")
+    print("✅ Tạo tất cả bảng thành công trong database quizletDB, bao gồm study mode tables.")
 except Exception as e:
     print("❌ Lỗi khi tạo bảng:", e)
 
