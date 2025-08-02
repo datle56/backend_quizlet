@@ -129,6 +129,51 @@ python scripts/init_db.py
 - `POST /api/v1/study-sets/{id}/terms/bulk` - Thêm nhiều thuật ngữ cùng lúc
 - `PUT /api/v1/study-sets/{id}/terms/reorder` - Sắp xếp lại thứ tự thuật ngữ
 
+### Study Modes
+- `POST /api/v1/study/flashcards/{study_set_id}` - Flashcards mode
+- `POST /api/v1/study/learn/{study_set_id}` - Learn mode
+- `POST /api/v1/study/write/{study_set_id}` - Write mode
+- `POST /api/v1/study/spell/{study_set_id}` - Spell mode
+- `POST /api/v1/study/test/{study_set_id}` - Test mode
+- `POST /api/v1/study/match/{study_set_id}` - Match mode
+- `POST /api/v1/study/gravity/{study_set_id}` - Gravity mode
+
+### Social Features
+- `POST /api/v1/social/favorites/{study_set_id}` - Toggle favorite
+- `GET /api/v1/social/favorites` - Get user favorites
+- `POST /api/v1/social/ratings/{study_set_id}` - Create/update rating
+- `GET /api/v1/social/ratings/{study_set_id}` - Get rating summary
+
+### Classes
+- `POST /api/v1/classes/` - Create class
+- `GET /api/v1/classes/` - Get user's classes
+- `POST /api/v1/classes/{class_id}/join` - Join class
+- `GET /api/v1/classes/{class_id}/members` - Get class members
+
+### Notifications (Phase 6)
+- `GET /api/v1/notifications/` - Get user notifications
+- `PUT /api/v1/notifications/{id}/read` - Mark notification as read
+- `PUT /api/v1/notifications/mark-all-read` - Mark all as read
+- `GET /api/v1/notifications/stats` - Get notification statistics
+- `POST /api/v1/notifications/test-email` - Test email notification
+- `POST /api/v1/notifications/test-push` - Test push notification
+
+### Reports & Moderation (Phase 6)
+- `POST /api/v1/reports/` - Create report
+- `GET /api/v1/reports/` - Get all reports (admin)
+- `PUT /api/v1/reports/{id}/resolve` - Resolve report (admin)
+- `GET /api/v1/reports/stats` - Get report statistics (admin)
+- `GET /api/v1/reports/my-reports` - Get user's reports
+
+### Analytics (Phase 6)
+- `GET /api/v1/analytics/user-stats` - Get user statistics
+- `GET /api/v1/analytics/study-set-stats/{id}` - Get study set analytics
+- `GET /api/v1/analytics/class-stats/{id}` - Get class statistics
+- `GET /api/v1/analytics/study-session-stats` - Get session statistics
+- `GET /api/v1/analytics/comprehensive` - Get comprehensive analytics
+- `GET /api/v1/analytics/dashboard` - Get dashboard statistics
+- `GET /api/v1/analytics/progress/{study_set_id}` - Get study progress
+
 ## Database Schema
 
 Dự án sử dụng PostgreSQL với các bảng chính:
@@ -179,6 +224,13 @@ pytest
 - ✅ **Authentication System** - JWT-based auth với access/refresh tokens
 - ✅ **User Management** - CRUD operations cho users
 - ✅ **Study Sets Management** - CRUD operations cho study sets và terms
+- ✅ **Study Progress Tracking** - SRS algorithm và progress tracking
+- ✅ **Study Modes** - Flashcards, Learn, Write, Spell, Test, Match, Gravity
+- ✅ **Social Features** - Favorites, ratings, comments
+- ✅ **Class Management** - Class creation, joining, assignments
+- ✅ **Notifications System** - Real-time notifications, email, push notifications
+- ✅ **Reports & Moderation** - Content reporting, admin moderation tools
+- ✅ **Analytics & Statistics** - User stats, study set analytics, class statistics
 - ✅ **Database Integration** - SQLAlchemy với PostgreSQL
 - ✅ **API Documentation** - Auto-generated Swagger docs
 - ✅ **Security** - Password hashing, input validation
@@ -187,16 +239,16 @@ pytest
 - ✅ **Error Handling** - Proper HTTP status codes
 - ✅ **CORS Support** - Cross-origin requests
 - ✅ **Environment Config** - Flexible configuration system
+- ✅ **Background Tasks** - Asynchronous processing for notifications
 
 ## 🔮 Roadmap
 
-- [ ] Study Sets API
-- [ ] Terms Management
-- [ ] Study Progress Tracking
 - [ ] File Upload System
-- [ ] Email Notifications
-- [ ] Real-time Features
-- [ ] Analytics Dashboard
-- [ ] Mobile API Support "# backend_quizlet" 
+- [ ] Real-time Features (WebSockets)
+- [ ] Advanced Analytics with Machine Learning
+- [ ] Automated Content Moderation
+- [ ] Mobile API Support
+- [ ] Performance Optimizations
+- [ ] Advanced Caching Strategy "# backend_quizlet" 
 "# backend_quizlet" 
 "# backend_quizlet" 

@@ -15,6 +15,16 @@ from .class_ import (
     ClassStudySetBase, ClassStudySetCreate, ClassStudySetUpdate, ClassStudySetResponse,
     ClassProgressResponse
 )
+from .notification import (
+    NotificationBase, NotificationCreate, NotificationUpdate, NotificationResponse,
+    NotificationListResponse, NotificationStats
+)
+from .report import (
+    ReportBase, ReportCreate, ReportUpdate, ReportResponse, ReportListResponse, ReportStats
+)
+from .analytics import (
+    UserStats, StudySetStats, ClassStats, StudySessionStats, AnalyticsResponse
+)
 
 __all__ = [
     "UserBase", "UserCreate", "UserUpdate", "UserResponse", "UserLogin", "Token", "TokenData",
@@ -26,5 +36,9 @@ __all__ = [
     "ClassBase", "ClassCreate", "ClassUpdate", "ClassResponse", "ClassDetailResponse",
     "ClassJoin", "ClassMemberBase", "ClassMemberCreate", "ClassMemberResponse",
     "ClassStudySetBase", "ClassStudySetCreate", "ClassStudySetUpdate", "ClassStudySetResponse",
-    "ClassProgressResponse"
+    "ClassProgressResponse",
+    "NotificationBase", "NotificationCreate", "NotificationUpdate", "NotificationResponse",
+    "NotificationListResponse", "NotificationStats",
+    "ReportBase", "ReportCreate", "ReportUpdate", "ReportResponse", "ReportListResponse", "ReportStats",
+    "UserStats", "StudySetStats", "ClassStats", "StudySessionStats", "AnalyticsResponse"
 ] 
