@@ -21,8 +21,8 @@ def _get_user_info(user: User) -> dict:
     """Convert user to dict for response"""
     return {
         "id": user.id,
-        "username": user.username,
-        "full_name": user.full_name,
+        "last_name": user.last_name,
+        "first_name": user.first_name,
         "avatar_url": user.avatar_url
     }
 
@@ -33,6 +33,8 @@ def _to_class_dict(class_: Class) -> dict:
         "id": class_.id,
         "name": class_.name,
         "description": class_.description,
+        "subject": class_.subject,  # Thêm trường subject
+        "school": class_.school,    # Thêm trường school
         "teacher_id": class_.teacher_id,
         "join_code": class_.join_code,
         "created_at": class_.created_at,

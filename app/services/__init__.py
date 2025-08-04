@@ -5,8 +5,9 @@ from .class_service import ClassService, ClassStudySetService, ClassProgressServ
 from .notification_service import NotificationService
 from .report_service import ReportService
 from .analytics_service import AnalyticsService
+from .folder_service import FolderService
 
 __all__ = [
     "AuthService", "StudySetService", "TermService", "ClassService", "ClassStudySetService", "ClassProgressService",
-    "NotificationService", "ReportService", "AnalyticsService"
+    "NotificationService", "ReportService", "AnalyticsService", "FolderService"
 ] 

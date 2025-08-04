@@ -6,6 +6,8 @@ from datetime import datetime
 class ClassBase(BaseModel):
     name: str
     description: Optional[str] = None
+    subject: Optional[str] = None  # Môn học (optional)
+    school: Optional[str] = None   # Trường/Tổ chức (optional)
 
 
 class ClassCreate(ClassBase):
@@ -15,6 +17,8 @@ class ClassCreate(ClassBase):
 class ClassUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
+    subject: Optional[str] = None  # Môn học (optional)
+    school: Optional[str] = None   # Trường/Tổ chức (optional)
     is_active: Optional[bool] = None
 
 

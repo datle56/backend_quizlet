@@ -44,6 +44,7 @@ class StudySetBase(BaseModel):
     is_public: bool = True
     language_from: Optional[str] = Field(None, max_length=10)
     language_to: Optional[str] = Field(None, max_length=10)
+    color: Optional[str] = Field(None, max_length=20, description="Màu chủ đề")
 
 
 class StudySetCreate(StudySetBase):
@@ -56,6 +57,7 @@ class StudySetUpdate(BaseModel):
     is_public: Optional[bool] = None
     language_from: Optional[str] = Field(None, max_length=10)
     language_to: Optional[str] = Field(None, max_length=10)
+    color: Optional[str] = Field(None, max_length=20, description="Màu chủ đề")
 
 
 class StudySetResponse(StudySetBase):
@@ -67,6 +69,7 @@ class StudySetResponse(StudySetBase):
     views_count: int
     favorites_count: int
     average_rating: float
+    color: Optional[str]
     user: dict  # Will be populated with user info
     model_config = {"from_attributes": True}
 
@@ -89,6 +92,7 @@ class StudySetListItem(BaseModel):
     average_rating: float
     language_from: Optional[str]
     language_to: Optional[str]
+    color: Optional[str]
     is_public: bool
     user: dict  # Will be populated with user info
     model_config = {"from_attributes": True}
@@ -102,7 +106,8 @@ class StudySetSearchParams(BaseModel):
     language_to: Optional[str] = None
     user_id: Optional[int] = None
     min_rating: Optional[float] = Field(None, ge=0, le=5)
-    sort_by: str = Field("created_at", pattern="^(created_at|title|views_count|favorites_count|average_rating)$")
+    sort_by: str = Field(
+        "created_at", pattern="^(created_at|title|views_count|favorites_count|average_rating)$")
     sort_order: str = Field("desc", pattern="^(asc|desc)$")
 
 
@@ -111,4 +116,4 @@ class StudySetListResponse(BaseModel):
     total: int
     page: int
     size: int
-    pages: int 
+    pages: int

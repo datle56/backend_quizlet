@@ -8,6 +8,7 @@ from .classes import router as classes_router
 from .notifications import router as notifications_router
 from .reports import router as reports_router
 from .analytics import router as analytics_router
+from .folders import router as folders_router
 
 # Create main v1 router
 router = APIRouter()
@@ -21,4 +22,5 @@ router.include_router(social_router, prefix="/social", tags=["social"])
 router.include_router(classes_router, prefix="/classes", tags=["classes"])
 router.include_router(notifications_router, prefix="/notifications", tags=["notifications"])
 router.include_router(reports_router, prefix="/reports", tags=["reports"])
-router.include_router(analytics_router, prefix="/analytics", tags=["analytics"]) 
+router.include_router(analytics_router, prefix="/analytics", tags=["analytics"])
+router.include_router(folders_router, prefix="/folders", tags=["folders"]) 

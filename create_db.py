@@ -13,12 +13,14 @@ DB_USER = 'myuser'
 DB_PASS = 'mypassword'
 DB_NAME = 'quizletDB'
 
+
 def execute_query(conn, query, autocommit=False):
     """Execute a database query"""
     with conn.cursor() as cur:
         cur.execute(query)
     if autocommit:
         conn.commit()
+
 
 # Kết nối tới default 'postgres' database để xóa và tạo db mới
 conn = psycopg2.connect(
@@ -32,7 +34,8 @@ conn.autocommit = True
 
 # Xóa database nếu tồn tại
 try:
-    execute_query(conn, f'''DROP DATABASE IF EXISTS "{DB_NAME}"''', autocommit=True)
+    execute_query(
+        conn, f'''DROP DATABASE IF EXISTS "{DB_NAME}"''', autocommit=True)
     print(f"✅ Đã xóa database {DB_NAME} (nếu có)")
 except Exception as e:
     print("❌ Lỗi khi xóa database:", e)
@@ -60,6 +63,7 @@ conn = psycopg2.connect(
 conn.autocommit = True
 
 # Truy vấn tạo bảng
+
 create_tables_sql = """
 -- Tạo các enum trước khi sử dụng
 CREATE TYPE familiarity_level_enum AS ENUM('learning', 'familiar', 'mastered');
@@ -68,23 +72,23 @@ CREATE TYPE study_mode_enum AS ENUM('flashcards', 'learn', 'write', 'spell', 'te
 -- Cập nhật study_mode_enum để đảm bảo có 'gravity'
 ALTER TYPE study_mode_enum ADD VALUE IF NOT EXISTS 'gravity';
 
--- Bảng users
+-- Bảng users (cập nhật: tách họ tên, bỏ username, thêm receive_tips)
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
-    username VARCHAR(50) UNIQUE,
+    last_name VARCHAR(50),
+    first_name VARCHAR(50),
     email VARCHAR(100) UNIQUE,
     password_hash VARCHAR(255),
-    full_name VARCHAR(100),
     avatar_url VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     is_premium BOOLEAN DEFAULT FALSE,
     last_active_at TIMESTAMP,
     total_study_sets_created INT DEFAULT 0,
-    total_terms_learned INT DEFAULT 0
+    total_terms_learned INT DEFAULT 0,
+    receive_tips BOOLEAN DEFAULT FALSE
 );
 
--- Bảng study_sets
 CREATE TABLE study_sets (
     id SERIAL PRIMARY KEY,
     title VARCHAR(200),
@@ -101,6 +105,9 @@ CREATE TABLE study_sets (
     average_rating DECIMAL(3,2)
 );
 
+-- Thêm trường color (màu chủ đề)
+ALTER TABLE study_sets ADD COLUMN IF NOT EXISTS color VARCHAR(20);
+
 -- Bảng terms
 CREATE TABLE terms (
     id SERIAL PRIMARY KEY,
@@ -114,11 +121,16 @@ CREATE TABLE terms (
     position INT
 );
 
--- Bảng folders
+-- Bảng folders (cập nhật với các trường mới)
 CREATE TABLE folders (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100),
+    description TEXT,
+    color VARCHAR(20),  -- Màu sắc thư mục (string để FE tự định nghĩa)
+    icon VARCHAR(50),   -- Biểu tượng thư mục (string để FE tự định nghĩa)
     user_id INT REFERENCES users(id),
+    is_public BOOLEAN DEFAULT FALSE,  -- Thêm trường public/private
+    position INT DEFAULT 0,  -- Thứ tự sắp xếp
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -286,6 +298,8 @@ CREATE TABLE classes (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100),
     description TEXT,
+    subject VARCHAR(100),  -- Môn học (optional)
+    school VARCHAR(100),   -- Trường/Tổ chức (optional)
     teacher_id INT REFERENCES users(id),
     join_code VARCHAR(10) UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

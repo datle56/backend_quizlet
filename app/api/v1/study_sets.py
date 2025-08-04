@@ -10,17 +10,23 @@ from app.schemas.study_set import (
     TermCreate, TermUpdate, TermResponse, TermBulkCreate, TermReorder
 )
 from app.services.study_set_service import StudySetService, TermService
+from app.services.folder_service import FolderService
 from app.schemas.user import UserResponse
+from pydantic import BaseModel
 
 router = APIRouter()
+
+
+class StudySetPublicToggle(BaseModel):
+    is_public: bool
 
 
 def _get_user_info(user: User) -> dict:
     """Convert user to dict for response"""
     return {
         "id": user.id,
-        "username": user.username,
-        "full_name": user.full_name,
+        "last_name": user.last_name,
+        "first_name": user.first_name,
         "avatar_url": user.avatar_url
     }
 
@@ -40,7 +46,8 @@ def _to_study_set_dict(study_set) -> dict:
         "language_to": study_set.language_to,
         "views_count": study_set.views_count,
         "favorites_count": study_set.favorites_count,
-        "average_rating": study_set.average_rating
+        "average_rating": study_set.average_rating,
+        "color": getattr(study_set, "color", None)
     }
 
 
@@ -66,7 +73,8 @@ def create_study_set(
     current_user: User = Depends(get_current_user)
 ):
     """Create a new study set"""
-    study_set = StudySetService.create_study_set(db, study_set_data, current_user.id)
+    study_set = StudySetService.create_study_set(
+        db, study_set_data, current_user.id)
     data = _to_study_set_dict(study_set)
     data["user"] = _get_user_info(current_user)
     resp = StudySetResponse.model_validate(data)
@@ -92,7 +100,32 @@ def get_study_set(
             detail="Access denied"
         )
     terms = TermService.get_terms_by_study_set(db, study_set_id)
-    term_responses = [TermResponse.model_validate(_to_term_dict(term)) for term in terms]
+    term_responses = [TermResponse.model_validate(
+        _to_term_dict(term)) for term in terms]
+    user = db.query(User).filter(User.id == study_set.user_id).first()
+    user_info = _get_user_info(user) if user else {}
+    data = _to_study_set_dict(study_set)
+    data["user"] = user_info
+    data["terms"] = term_responses
+    resp = StudySetDetailResponse.model_validate(data)
+    return resp
+
+
+@router.get("/public/{study_set_id}", response_model=StudySetDetailResponse)
+def get_public_study_set(
+    study_set_id: int,
+    db: Session = Depends(get_db)
+):
+    """Get public study set details with terms (no authentication required)"""
+    study_set = StudySetService.get_public_study_set_by_id(db, study_set_id)
+    if not study_set:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Study set not found or not public"
+        )
+    terms = TermService.get_terms_by_study_set(db, study_set_id)
+    term_responses = [TermResponse.model_validate(
+        _to_term_dict(term)) for term in terms]
     user = db.query(User).filter(User.id == study_set.user_id).first()
     user_info = _get_user_info(user) if user else {}
     data = _to_study_set_dict(study_set)
@@ -110,7 +143,29 @@ def update_study_set(
     current_user: User = Depends(get_current_user)
 ):
     """Update study set"""
-    study_set = StudySetService.update_study_set(db, study_set_id, study_set_data, current_user.id)
+    study_set = StudySetService.update_study_set(
+        db, study_set_id, study_set_data, current_user.id)
+    data = _to_study_set_dict(study_set)
+    data["user"] = _get_user_info(current_user)
+    resp = StudySetResponse.model_validate(data)
+    return resp
+
+
+@router.put("/{study_set_id}/public", response_model=StudySetResponse)
+def toggle_study_set_public(
+    study_set_id: int,
+    public_data: StudySetPublicToggle,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Toggle study set public/private status"""
+    study_set = StudySetService.toggle_study_set_public(
+        db, study_set_id, current_user.id, public_data.is_public)
+    if not study_set:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Study set not found"
+        )
     data = _to_study_set_dict(study_set)
     data["user"] = _get_user_info(current_user)
     resp = StudySetResponse.model_validate(data)
@@ -135,12 +190,13 @@ def search_study_sets(
     language_from: Optional[str] = Query(None, description="Source language"),
     language_to: Optional[str] = Query(None, description="Target language"),
     user_id: Optional[int] = Query(None, description="Filter by user ID"),
-    min_rating: Optional[float] = Query(None, ge=0, le=5, description="Minimum rating"),
+    min_rating: Optional[float] = Query(
+        None, ge=0, le=5, description="Minimum rating"),
     sort_by: str = Query("created_at", description="Sort field"),
     sort_order: str = Query("desc", description="Sort order (asc/desc)"),
     db: Session = Depends(get_db)
 ):
-    """Search and filter study sets"""
+    """Search and filter study sets (public only)"""
     params = StudySetSearchParams(
         page=page,
         size=size,
@@ -152,7 +208,7 @@ def search_study_sets(
         sort_by=sort_by,
         sort_order=sort_order
     )
-    study_sets, total = StudySetService.search_study_sets(db, params)
+    study_sets, total = StudySetService.search_public_study_sets(db, params)
     items = []
     for study_set in study_sets:
         user = db.query(User).filter(User.id == study_set.user_id).first()
@@ -173,12 +229,14 @@ def search_study_sets(
 
 @router.get("/user/me", response_model=List[StudySetResponse])
 def get_my_study_sets(
-    include_private: bool = Query(True, description="Include private study sets"),
+    include_private: bool = Query(
+        True, description="Include private study sets"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """Get current user's study sets"""
-    study_sets = StudySetService.get_user_study_sets(db, current_user.id, include_private)
+    study_sets = StudySetService.get_user_study_sets(
+        db, current_user.id, include_private)
     result = []
     for study_set in study_sets:
         data = _to_study_set_dict(study_set)
@@ -197,7 +255,8 @@ def create_term(
     current_user: User = Depends(get_current_user)
 ):
     """Add a new term to study set"""
-    term = TermService.create_term(db, study_set_id, term_data.dict(), current_user.id)
+    term = TermService.create_term(
+        db, study_set_id, term_data.dict(), current_user.id)
     return TermResponse.model_validate(_to_term_dict(term))
 
 
@@ -208,7 +267,8 @@ def get_terms(
     current_user: Optional[User] = Depends(get_current_user)
 ):
     """Get all terms for a study set"""
-    study_set = StudySetService.get_study_set_by_id(db, study_set_id, increment_views=False)
+    study_set = StudySetService.get_study_set_by_id(
+        db, study_set_id, increment_views=False)
     if not study_set:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -218,6 +278,22 @@ def get_terms(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Access denied"
+        )
+    terms = TermService.get_terms_by_study_set(db, study_set_id)
+    return [TermResponse.model_validate(_to_term_dict(term)) for term in terms]
+
+
+@router.get("/public/{study_set_id}/terms/", response_model=List[TermResponse])
+def get_public_terms(
+    study_set_id: int,
+    db: Session = Depends(get_db)
+):
+    """Get all terms for a public study set (no authentication required)"""
+    study_set = StudySetService.get_public_study_set_by_id(db, study_set_id)
+    if not study_set:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Study set not found or not public"
         )
     terms = TermService.get_terms_by_study_set(db, study_set_id)
     return [TermResponse.model_validate(_to_term_dict(term)) for term in terms]
@@ -233,7 +309,8 @@ def update_term(
 ):
     """Update a term"""
     update_data = term_data.dict(exclude_unset=True)
-    term = TermService.update_term(db, study_set_id, term_id, update_data, current_user.id)
+    term = TermService.update_term(
+        db, study_set_id, term_id, update_data, current_user.id)
     return TermResponse.model_validate(_to_term_dict(term))
 
 
@@ -257,7 +334,8 @@ def bulk_create_terms(
 ):
     """Create multiple terms at once"""
     terms = TermService.bulk_create_terms(
-        db, study_set_id, [term.dict() for term in terms_data.terms], current_user.id
+        db, study_set_id, [term.dict()
+                           for term in terms_data.terms], current_user.id
     )
     return [TermResponse.model_validate(_to_term_dict(term)) for term in terms]
 
@@ -270,5 +348,23 @@ def reorder_terms(
     current_user: User = Depends(get_current_user)
 ):
     """Reorder terms by updating their positions"""
-    terms = TermService.reorder_terms(db, study_set_id, reorder_data.term_ids, current_user.id)
-    return [TermResponse.model_validate(_to_term_dict(term)) for term in terms] 
+    terms = TermService.reorder_terms(
+        db, study_set_id, reorder_data.term_ids, current_user.id)
+    return [TermResponse.model_validate(_to_term_dict(term)) for term in terms]
+
+
+@router.put("/{study_set_id}/move-to-folder/{folder_id}")
+def move_study_set_to_folder(
+    study_set_id: int,
+    folder_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Di chuyển study set sang thư mục khác"""
+    success = FolderService.move_study_set_to_folder(db, study_set_id, folder_id, current_user.id)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Không thể di chuyển study set"
+        )
+    return {"message": "Đã di chuyển study set sang thư mục mới"}

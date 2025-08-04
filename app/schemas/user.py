@@ -4,10 +4,11 @@ from datetime import datetime
 
 
 class UserBase(BaseModel):
-    username: str
+    last_name: Optional[str] = None
+    first_name: Optional[str] = None
     email: EmailStr
-    full_name: Optional[str] = None
     avatar_url: Optional[str] = None
+    receive_tips: Optional[bool] = False
 
 
 class UserCreate(UserBase):
@@ -15,11 +16,12 @@ class UserCreate(UserBase):
 
 
 class UserUpdate(BaseModel):
-    username: Optional[str] = None
+    last_name: Optional[str] = None
+    first_name: Optional[str] = None
     email: Optional[EmailStr] = None
-    full_name: Optional[str] = None
     avatar_url: Optional[str] = None
     password: Optional[str] = None
+    receive_tips: Optional[bool] = None
 
 
 class UserResponse(UserBase):
@@ -30,11 +32,12 @@ class UserResponse(UserBase):
     last_active_at: Optional[datetime] = None
     total_study_sets_created: int
     total_terms_learned: int
+    receive_tips: Optional[bool] = False
     model_config = {"from_attributes": True}
 
 
 class UserLogin(BaseModel):
-    username: str
+    email: EmailStr
     password: str
 
 
@@ -46,4 +49,4 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     username: Optional[str] = None
-    user_id: Optional[int] = None 
+    user_id: Optional[int] = None

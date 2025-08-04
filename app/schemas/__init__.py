@@ -25,6 +25,10 @@ from .report import (
 from .analytics import (
     UserStats, StudySetStats, ClassStats, StudySessionStats, AnalyticsResponse
 )
+from .folder import (
+    FolderBase, FolderCreate, FolderUpdate, FolderResponse, FolderDetailResponse,
+    FolderReorder, FolderColorsIcons, FolderStudySetsResponse, StudySetInFolder
+)
 
 __all__ = [
     "UserBase", "UserCreate", "UserUpdate", "UserResponse", "UserLogin", "Token", "TokenData",
@@ -40,5 +44,7 @@ __all__ = [
     "NotificationBase", "NotificationCreate", "NotificationUpdate", "NotificationResponse",
     "NotificationListResponse", "NotificationStats",
     "ReportBase", "ReportCreate", "ReportUpdate", "ReportResponse", "ReportListResponse", "ReportStats",
-    "UserStats", "StudySetStats", "ClassStats", "StudySessionStats", "AnalyticsResponse"
+    "UserStats", "StudySetStats", "ClassStats", "StudySessionStats", "AnalyticsResponse",
+    "FolderBase", "FolderCreate", "FolderUpdate", "FolderResponse", "FolderDetailResponse",
+    "FolderReorder", "FolderColorsIcons", "FolderStudySetsResponse", "StudySetInFolder"
 ] 

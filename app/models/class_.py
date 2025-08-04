@@ -11,6 +11,8 @@ class Class(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), nullable=False)
     description = Column(Text, nullable=True)
+    subject = Column(String(100), nullable=True)  # Môn học (optional)
+    school = Column(String(100), nullable=True)   # Trường/Tổ chức (optional)
     teacher_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     join_code = Column(String(10), unique=True, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
